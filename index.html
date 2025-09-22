@@ -7,8 +7,11 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
             background-color: #f5f5f5;
+            position: relative;
+            min-height: 100vh;
         }
         .container {
             max-width: 800px;
@@ -21,6 +24,7 @@
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 20px;
         }
         .controls {
             display: flex;
@@ -29,14 +33,23 @@
             padding: 15px;
             background-color: #e9f7fe;
             border-radius: 5px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .control-group {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .timer-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         label {
-            margin-right: 10px;
             font-weight: bold;
+            white-space: nowrap;
         }
         input[type="number"] {
             width: 80px;
@@ -52,15 +65,30 @@
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.2s;
         }
         button:hover {
-            background-color: #45a049;
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
         #refreshBtn {
             background-color: #f44336;
         }
         #refreshBtn:hover {
             background-color: #d32f2f;
+        }
+        .timer-controls button {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        #startTimer {
+            background-color: #4CAF50;
+        }
+        #stopTimer {
+            background-color: #ff9800;
+        }
+        #resetTimer {
+            background-color: #f44336;
         }
         .omr-grid {
             display: grid;
@@ -102,23 +130,196 @@
             color: white;
             border-color: #45a049;
         }
+        
+        /* Timer Styles */
+        .timer-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .timer-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 3px solid #4CAF50;
+            position: relative;
+        }
+        .timer-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .timer-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .control-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .timer-circle {
+                width: 80px;
+                height: 80px;
+            }
+            .timer-display {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            .controls {
+                padding: 10px;
+            }
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .timer-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+           
+            .timer-circle {
+                width: 60px;
+                height: 60px;
+            }
+            .timer-display {
+                font-size: 14px;
+            }
+            .timer-label {
+                font-size: 12px;
+                bottom: -20px;
+            }
+        }
+        
         @media print {
             body {
                 background-color: white;
+                padding: 0;
             }
             .container {
                 box-shadow: none;
                 padding: 0;
+                max-width: 100%;
             }
             .controls {
                 display: none;
             }
+           
+            .timer-container {
+                display: none;
+            }
+
             .omr-grid {
-                gap: 5px;
-            }
-            .option {
-                padding: 5px;
-            }
+    display: grid;
+    grid-template-columns: 1fr; /* Single column layout */
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.header {
+    display: none; /* Hide headers as they won't work with this layout */
+}
+
+.question-row {
+    display: grid;
+    grid-template-columns: 60px repeat(4, 1fr); /* Question number + 4 options */
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.question-number {
+    font-weight: bold;
+    text-align: center;
+    padding: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+}
+
+.option {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.option:hover {
+    background-color: #f0f0f0;
+}
+
+.option.selected {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #45a049;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .question-row {
+        grid-template-columns: 50px repeat(4, 1fr);
+        gap: 5px;
+        padding: 8px;
+    }
+    
+    .question-number {
+        padding: 6px;
+        font-size: 14px;
+    }
+    
+    .option {
+        padding: 8px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .question-row {
+        grid-template-columns: 40px repeat(4, 1fr);
+        gap: 3px;
+        padding: 5px;
+    }
+    
+    .question-number {
+        padding: 5px;
+        font-size: 12px;
+    }
+    
+    .option {
+        padding: 6px;
+        font-size: 12px;
+    }
+}
         }
     </style>
 </head>
@@ -132,12 +333,28 @@
                 <input type="number" id="questionCount" min="1" max="200" value="50">
                 <button id="generateBtn">Generate</button>
             </div>
-            <button id="refreshBtn">Refresh All</button>
+            
+            <div class="control-group">
+                <div class="timer-controls">
+                    <button id="startTimer">Start Timer</button>
+                    <button id="stopTimer">Stop Timer</button>
+                    <button id="resetTimer">Reset Timer</button>
+                </div>
+                <button id="refreshBtn">Refresh All Answers</button>
+            </div>
         </div>
         
         <div class="omr-grid" id="omrGrid">
             <!-- OMR grid will be generated here -->
         </div>
+    </div>
+
+    <!-- Timer Container -->
+    <div class="timer-container">
+        <div class="timer-circle">
+            <div class="timer-display" id="timerDisplay">00:00</div>
+        </div>
+        <div class="timer-label">OMR Timer</div>
     </div>
 
     <script>
@@ -146,6 +363,17 @@
             const generateBtn = document.getElementById('generateBtn');
             const refreshBtn = document.getElementById('refreshBtn');
             const omrGrid = document.getElementById('omrGrid');
+            
+            // Timer elements
+            const timerDisplay = document.getElementById('timerDisplay');
+            const startTimerBtn = document.getElementById('startTimer');
+            const stopTimerBtn = document.getElementById('stopTimer');
+            const resetTimerBtn = document.getElementById('resetTimer');
+            
+            // Timer variables
+            let timerInterval;
+            let seconds = 0;
+            let isRunning = false;
             
             // Initial generation
             generateOMRSheet(50);
@@ -168,6 +396,61 @@
                 });
             });
             
+            // Timer functions
+            function startTimer() {
+                if (!isRunning) {
+                    isRunning = true;
+                    timerInterval = setInterval(updateTimer, 1000);
+                    startTimerBtn.disabled = true;
+                    stopTimerBtn.disabled = false;
+                }
+            }
+            
+            function stopTimer() {
+                if (isRunning) {
+                    isRunning = false;
+                    clearInterval(timerInterval);
+                    startTimerBtn.disabled = false;
+                    stopTimerBtn.disabled = true;
+                }
+            }
+            
+            function resetTimer() {
+                stopTimer();
+                seconds = 0;
+                updateDisplay();
+                startTimerBtn.disabled = false;
+                stopTimerBtn.disabled = false;
+            }
+            
+            function updateTimer() {
+                seconds++;
+                updateDisplay();
+            }
+            
+            function updateDisplay() {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                
+                // Change color based on time
+                if (minutes >= 10) {
+                    timerDisplay.style.color = '#f44336';
+                } else if (minutes >= 5) {
+                    timerDisplay.style.color = '#ff9800';
+                } else {
+                    timerDisplay.style.color = '#333';
+                }
+            }
+            
+            // Timer button event listeners
+            startTimerBtn.addEventListener('click', startTimer);
+            stopTimerBtn.addEventListener('click', stopTimer);
+            resetTimerBtn.addEventListener('click', resetTimer);
+            
+            // Initially disable stop button
+            stopTimerBtn.disabled = true;
+            
             // Function to generate the OMR sheet
             function generateOMRSheet(count) {
                 omrGrid.innerHTML = '';
@@ -187,6 +470,7 @@
                     const numberElement = document.createElement('div');
                     numberElement.className = 'question-cell';
                     numberElement.textContent = i;
+                    numberElement.setAttribute('data-question', i);
                     omrGrid.appendChild(numberElement);
                     
                     // Options A-D
@@ -217,5 +501,4 @@
         });
     </script>
 </body>
-
 </html>
